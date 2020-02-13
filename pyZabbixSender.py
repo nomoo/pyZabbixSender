@@ -2,7 +2,7 @@
 # Copyright 2015 Kurt Momberg <kurtqm (at) yahoo(dot)com(dot)ar>
 # > Based on work by Klimenko Artyem <aklim007(at)gmail(dot)com>
 # >> Based on work by Rob Cherry <zsend(at)lxrb(dot)com>
-# >>> Based on work by Enrico Tröger <enrico(dot)troeger(at)uvena(dot)de>
+# >>> Based on work by Enrico Trï¿½ger <enrico(dot)troeger(at)uvena(dot)de>
 # License: GNU GPLv2
 
 import socket
@@ -31,7 +31,6 @@ class pyZabbixSender:
     RC_ERR_PARS_RESP =   2  # Error parsing server response
     RC_ERR_CONN      = 255  # Error talking to the server
     RC_ERR_INV_RESP  = 254  # Invalid response from server
-
     
     def __init__(self, server=ZABBIX_SERVER, port=ZABBIX_PORT, verbose=False):
         '''
@@ -54,14 +53,12 @@ class pyZabbixSender:
         self.timeout = 5         # Socket connection timeout.
         self.__data = []         # This is to store data to be sent later.
 
-        
     def __str__(self):
         '''
         This allows you to obtain a string representation of the internal data
         '''
         return str(self.__data)
-        
-        
+
     def __createDataPoint(self, host, key, value, clock=None):
         '''
         Creates a dictionary using provided parameters, as needed for sending this data.
@@ -75,7 +72,6 @@ class pyZabbixSender:
             obj['clock'] = clock
         return obj
 
-        
     def __send(self, mydata):
         '''
         This is the method that actually sends the data to the zabbix server.
@@ -88,7 +84,7 @@ class pyZabbixSender:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((self.zserver, self.zport))
             sock.send(data_to_send)
-        except Exception, err:
+        except Exception as err:
             err_message = u'Error talking to server: %s\n' %str(err)
             sys.stderr.write(err_message)
             return self.RC_ERR_CONN, err_message
@@ -119,7 +115,6 @@ class pyZabbixSender:
                 return self.RC_ERR_FAIL_SEND, response
         return self.RC_OK, response
 
-
     def addData(self, host, key, value, clock=None):
         '''
         #####Description:
@@ -142,7 +137,6 @@ class pyZabbixSender:
         obj = self.__createDataPoint(host, key, value, clock)
         self.__data.append(obj)
 
-        
     def clearData(self):
         '''
         #####Description:
@@ -155,7 +149,6 @@ class pyZabbixSender:
         None
         '''
         self.__data = []
-        
     
     def getData(self):
         '''
@@ -174,8 +167,7 @@ class pyZabbixSender:
         for data_point in self.__data:
             copy_of_data.append(data_point.copy())    
         return copy_of_data
-        
-        
+
     def printData(self):
         '''
         #####Description:
@@ -188,9 +180,8 @@ class pyZabbixSender:
         None
         '''
         for elem in self.__data:
-            print str(elem)
-        print 'Count: %d' % len(self.__data)
-
+            print(str(elem))
+        print('Count: %d' % len(self.__data))
 
     def removeDataPoint(self, data_point):
         '''
@@ -210,7 +201,6 @@ class pyZabbixSender:
             return True
         
         return False
-        
         
     def sendData(self, packet_clock=None, max_data_per_conn=None):
         '''
@@ -261,7 +251,6 @@ class pyZabbixSender:
 
         return responses
 
-
     def sendDataOneByOne(self):
         '''
         #####Description:
@@ -288,7 +277,6 @@ class pyZabbixSender:
 
             retarray.append((retcode, i))
         return retarray
-
 
     def sendSingle(self, host, key, value, clock=None):
         '''
@@ -319,7 +307,6 @@ class pyZabbixSender:
         sender_data['data'].append(obj)
         to_send = json.dumps(sender_data)
         return self.__send(to_send)
-
 
     def sendSingleLikeProxy(self, host, key, value, clock=None, proxy=None):
         '''
