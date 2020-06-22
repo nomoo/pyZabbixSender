@@ -2,7 +2,7 @@
 # Copyright 2015 Kurt Momberg <kurtqm (at) yahoo(dot)com(dot)ar>
 # > Based on work by Klimenko Artyem <aklim007(at)gmail(dot)com>
 # >> Based on work by Rob Cherry <zsend(at)lxrb(dot)com>
-# >>> Based on work by Enrico Tr�ger <enrico(dot)troeger(at)uvena(dot)de>
+# >>> Based on work by Enrico TrпїЅger <enrico(dot)troeger(at)uvena(dot)de>
 # License: GNU GPLv2
 
 import socket
@@ -52,6 +52,7 @@ class pyZabbixSender:
         self.verbose = verbose
         self.timeout = 5         # Socket connection timeout.
         self.__data = []         # This is to store data to be sent later.
+        self.PY2 = sys.version_info[0] == 2
 
     def __str__(self):
         '''
@@ -78,8 +79,20 @@ class pyZabbixSender:
         '''
         socket.setdefaulttimeout(self.timeout)
         data_length = len(mydata)
-        data_header = str(struct.pack('q', data_length))
-        data_to_send = 'ZBXD\1' + str(data_header) + str(mydata)
+
+        '''
+        Python2 socket.send( <str> )
+        Python3 socket.send( <bytes> )
+        '''
+        if self.PY2:
+            data_header = str(struct.pack('q', data_length))
+            data_to_send = 'ZBXD\1' + str(data_header) + str(mydata)
+        else:
+            zbx_header = b'ZBXD\1'
+            data_header = struct.pack('q', data_length)
+            mydata = ('%s' % mydata).encode()
+            data_to_send = zbx_header + data_header + mydata
+
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((self.zserver, self.zport))
@@ -89,8 +102,12 @@ class pyZabbixSender:
             sys.stderr.write(err_message)
             return self.RC_ERR_CONN, err_message
 
-        response_header = sock.recv(5)
-        if not response_header == 'ZBXD\1':
+        if self.PY2:
+            response_header = sock.recv(5)
+        else:
+            response_header = sock.recv(5).decode()
+
+        if not (response_header == 'ZBXD\1' or response_header == 'ZBXD'):
             err_message = u'Invalid response from server. Malformed data?\n---\n%s\n---\n' % str(mydata)
             sys.stderr.write(err_message)
             return self.RC_ERR_INV_RESP, err_message
